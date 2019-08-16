@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CommandLine;
@@ -27,6 +28,7 @@ namespace TA.Usno.Extractor
 
         public async Task Run()
             {
+            PrintBanner();
             var caseInsensitiveParser = new Parser(with =>
                 {
                 with.CaseSensitive = false;
@@ -55,6 +57,13 @@ namespace TA.Usno.Extractor
             Environment.Exit(exitCode);
             }
 
+        private void PrintBanner()
+            {
+            Console.WriteLine("Zip Archive Bulk Extractor");
+            Console.WriteLine("Copyright 2019 Tim Long and Tigra Astronomy");
+            Console.WriteLine($"Version 0.0");
+            }
+
         private async Task<int> PerformUnzip(ExtractorOptions options)
             {
             try
@@ -74,6 +83,11 @@ namespace TA.Usno.Extractor
             {
             var destination = options.DestinationPath ?? options.SourcePath ?? ".";
             var destinationDirectory = Path.GetFullPath(destination);
+            Console.WriteLine($"Extractor running...");
+            Console.WriteLine($"Source directory: {options.SourcePath}");
+            Console.WriteLine($"Destination directory: {destinationDirectory}");
+            Console.WriteLine($"Delete archives: {options.DeleteArchives}");
+
             int count = 0;
             foreach (var file in sourceFiles)
                 {
@@ -98,12 +112,26 @@ namespace TA.Usno.Extractor
          */
         private async Task ExtractOne(string zipName, string destinationDirectory)
             {
-            await using (var zipStream = new FileStream(zipName, FileMode.Open))
+            try
                 {
-                var zip = new System.IO.Compression.ZipArchive(zipStream, ZipArchiveMode.Read);
-                Console.WriteLine($"Extracting {zipName}, {zip.Entries.Count} entries");
-                zip.ExtractToDirectory(destinationDirectory);
-                Console.WriteLine($"Finished {zipName}");
+                await using (var zipStream = new FileStream(zipName, FileMode.Open))
+                    {
+                    var zip = new ZipArchive(zipStream, ZipArchiveMode.Read);
+                    Console.WriteLine($"Extracting {zipName}, {zip.Entries.Count} entries");
+                    zip.ExtractToDirectory(destinationDirectory);
+                    Console.WriteLine($"Finished {zipName}");
+                    }
+                if (options.DeleteArchives)
+                    {
+                    File.Delete(zipName);
+                    Console.WriteLine($"Deleted {zipName}");
+                    }
+
+                }
+            catch (Exception ex)
+                {
+                Console.WriteLine(ex);
+                throw;
                 }
             }
 
