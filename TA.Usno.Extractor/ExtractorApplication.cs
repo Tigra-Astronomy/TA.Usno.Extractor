@@ -59,9 +59,13 @@ namespace TA.Usno.Extractor
 
         private void PrintBanner()
             {
+            var assembly = Assembly.GetExecutingAssembly();
+            var commitDate = GitVersionInformation.CommitDate ?? DateTime.Now.Year.ToString();
+            var yearCommitted = commitDate.Substring(0, 4);
+            const string yearCreated = "2019";
+            string copyrightYear = yearCreated == yearCommitted ? yearCreated : $"{yearCreated}-{yearCommitted}";
             Console.WriteLine("Zip Archive Bulk Extractor");
-            Console.WriteLine("Copyright 2019 Tim Long and Tigra Astronomy");
-            Console.WriteLine($"Version 0.0");
+            Console.WriteLine($"Copyright {copyrightYear} Tigra Astronomy, all rights reserved.");
             }
 
         private async Task<int> PerformUnzip(ExtractorOptions options)
