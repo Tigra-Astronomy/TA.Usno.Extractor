@@ -28,19 +28,22 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.sourceLabel = new System.Windows.Forms.Label();
             this.destinationLabel = new System.Windows.Forms.Label();
-            this.sourceText = new System.Windows.Forms.TextBox();
-            this.destinationText = new System.Windows.Forms.TextBox();
+            this.sourceDirectory = new System.Windows.Forms.TextBox();
+            this.destinationDirectory = new System.Windows.Forms.TextBox();
             this.browseDestination = new System.Windows.Forms.Button();
             this.ExtractButton = new System.Windows.Forms.Button();
             this.deleteArchive = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.console = new ConsoleControl.ConsoleControl();
             this.browseSource = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
-            this.browseSourceFolders = new System.Windows.Forms.FolderBrowserDialog();
+            this.console = new ConsoleControl.ConsoleControl();
+            this.browseFolders = new System.Windows.Forms.FolderBrowserDialog();
+            this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
             this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
             // 
             // sourceLabel
@@ -61,23 +64,25 @@
             this.destinationLabel.TabIndex = 1;
             this.destinationLabel.Text = "Destination:";
             // 
-            // sourceText
+            // sourceDirectory
             // 
-            this.sourceText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.sourceDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.sourceText.Location = new System.Drawing.Point(78, 13);
-            this.sourceText.Name = "sourceText";
-            this.sourceText.Size = new System.Drawing.Size(627, 20);
-            this.sourceText.TabIndex = 2;
+            this.sourceDirectory.Location = new System.Drawing.Point(78, 13);
+            this.sourceDirectory.Name = "sourceDirectory";
+            this.sourceDirectory.Size = new System.Drawing.Size(627, 20);
+            this.sourceDirectory.TabIndex = 2;
+            this.sourceDirectory.TextChanged += new System.EventHandler(this.DirectoryTextChanged);
             // 
-            // destinationText
+            // destinationDirectory
             // 
-            this.destinationText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.destinationDirectory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.destinationText.Location = new System.Drawing.Point(78, 48);
-            this.destinationText.Name = "destinationText";
-            this.destinationText.Size = new System.Drawing.Size(627, 20);
-            this.destinationText.TabIndex = 3;
+            this.destinationDirectory.Location = new System.Drawing.Point(78, 48);
+            this.destinationDirectory.Name = "destinationDirectory";
+            this.destinationDirectory.Size = new System.Drawing.Size(627, 20);
+            this.destinationDirectory.TabIndex = 3;
+            this.destinationDirectory.TextChanged += new System.EventHandler(this.DirectoryTextChanged);
             // 
             // browseDestination
             // 
@@ -97,7 +102,6 @@
             this.ExtractButton.TabIndex = 8;
             this.ExtractButton.Text = "Extract";
             this.ExtractButton.UseVisualStyleBackColor = true;
-            this.ExtractButton.Click += new System.EventHandler(this.ExtractButton_Click);
             // 
             // deleteArchive
             // 
@@ -118,28 +122,15 @@
             this.groupBox1.Controls.Add(this.deleteArchive);
             this.groupBox1.Controls.Add(this.destinationLabel);
             this.groupBox1.Controls.Add(this.cancelButton);
-            this.groupBox1.Controls.Add(this.sourceText);
+            this.groupBox1.Controls.Add(this.sourceDirectory);
             this.groupBox1.Controls.Add(this.ExtractButton);
-            this.groupBox1.Controls.Add(this.destinationText);
+            this.groupBox1.Controls.Add(this.destinationDirectory);
             this.groupBox1.Controls.Add(this.browseDestination);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(746, 164);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
-            // 
-            // console
-            // 
-            this.console.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.console.IsInputEnabled = true;
-            this.console.Location = new System.Drawing.Point(12, 182);
-            this.console.Name = "console";
-            this.console.SendKeyboardCommandsToProcess = false;
-            this.console.ShowDiagnostics = false;
-            this.console.Size = new System.Drawing.Size(746, 259);
-            this.console.TabIndex = 12;
             // 
             // browseSource
             // 
@@ -160,6 +151,23 @@
             this.cancelButton.Text = "Cancel";
             this.cancelButton.UseVisualStyleBackColor = true;
             // 
+            // console
+            // 
+            this.console.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.console.IsInputEnabled = true;
+            this.console.Location = new System.Drawing.Point(12, 182);
+            this.console.Name = "console";
+            this.console.SendKeyboardCommandsToProcess = false;
+            this.console.ShowDiagnostics = false;
+            this.console.Size = new System.Drawing.Size(746, 259);
+            this.console.TabIndex = 12;
+            // 
+            // errorProvider
+            // 
+            this.errorProvider.ContainerControl = this;
+            // 
             // ZipFileExtractor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -171,8 +179,11 @@
             this.Name = "ZipFileExtractor";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "Zip file extractor";
+            this.Load += new System.EventHandler(this.ZipFileExtractor_Load);
+            this.Validated += new System.EventHandler(this.ZipFileExtractor_Validated);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -181,16 +192,17 @@
 
         private System.Windows.Forms.Label sourceLabel;
         private System.Windows.Forms.Label destinationLabel;
-        private System.Windows.Forms.TextBox sourceText;
-        private System.Windows.Forms.TextBox destinationText;
+        private System.Windows.Forms.TextBox sourceDirectory;
+        private System.Windows.Forms.TextBox destinationDirectory;
         private System.Windows.Forms.Button browseDestination;
         private System.Windows.Forms.Button ExtractButton;
         private System.Windows.Forms.CheckBox deleteArchive;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button browseSource;
         private System.Windows.Forms.Button cancelButton;
-        private System.Windows.Forms.FolderBrowserDialog browseSourceFolders;
+        private System.Windows.Forms.FolderBrowserDialog browseFolders;
         private ConsoleControl.ConsoleControl console;
+        private System.Windows.Forms.ErrorProvider errorProvider;
     }
 }
 
