@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TA.Usno.Extractor": {
+      "commandName": "Project",
+      "commandLineArgs": "--SourceDirectory C:\\Users\\fernj\\source\\repos\\ta.usno.extractor\\BuildOutput\\Debug\\Extractor\\TestData --DestinationDirectory \"C:\\Users\\fernj\\source\\repos\\ta.usno.extractor\\BuildOutput\\Debug\\Extractor\\TestData\\Test Output\""
+    }
+  }
+}

@@ -110,14 +110,15 @@ namespace TA.Usno.Extractor.Gui
             var myDirectory = Path.GetDirectoryName(myExecutable);
             var extractorExecutable = Path.Combine(myDirectory, @"Extractor\TA.Usno.Extractor.exe");
             var builder = new StringBuilder();
-            builder.Append($"--SourceDirectory {sourceDirectory.Text}");
-            builder.Append($" --DestinationDirectory {destinationDirectory.Text}");
+            builder.Append($"--SourceDirectory \"{sourceDirectory.Text}\" ");
+            builder.Append($" --DestinationDirectory \"{destinationDirectory.Text}\"");
 
             if (deleteArchive.Checked)
             {
                 builder.Append(" --DeleteArchives");
             }
             //Start extraction
+            console.WriteOutput($"{extractorExecutable} {builder.ToString()}\n", Color.PaleGoldenrod);
             console.StartProcess(extractorExecutable, builder.ToString());
             NotifyCanExecuteChanged();
         }

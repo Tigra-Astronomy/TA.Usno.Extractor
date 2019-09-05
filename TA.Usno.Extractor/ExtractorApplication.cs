@@ -143,7 +143,7 @@ namespace TA.Usno.Extractor
             {
             var fullyQualifiedSourceDirectory = Path.GetFullPath(sourcePath);
 
-            if (!Path.EndsInDirectorySeparator(fullyQualifiedSourceDirectory))
+            if (!Directory.Exists(fullyQualifiedSourceDirectory))
                 throw new ArgumentException("The specified source path is not a valid directory name");
 
             var zipFiles =
