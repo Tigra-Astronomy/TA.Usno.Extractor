@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 using CommandLine;
 
 namespace TA.Usno.Extractor
-    {
+{
     internal class ExtractorApplication
-        {
+    {
         private const int SignalExtractionFailed = -2;
         private const int SignalSuccess = 0;
         private const int SignalInvalidOptions = -1;
@@ -22,43 +22,43 @@ namespace TA.Usno.Extractor
         private ExtractorOptions options = new ExtractorOptions();
 
         public ExtractorApplication(string[] args)
-            {
+        {
             commandLineArguments = args;
-            }
+        }
 
         public async Task Run()
-            {
+        {
             PrintBanner();
             var caseInsensitiveParser = new Parser(with =>
                 {
-                with.CaseSensitive = false;
-                with.IgnoreUnknownArguments = false;
-                with.HelpWriter = Console.Out;
-                with.AutoVersion = true;
-                with.AutoHelp = true;
+                    with.CaseSensitive = false;
+                    with.IgnoreUnknownArguments = false;
+                    with.HelpWriter = Console.Out;
+                    with.AutoVersion = true;
+                    with.AutoHelp = true;
                 });
 
             try
-                {
+            {
                 var result = caseInsensitiveParser.ParseArguments<ExtractorOptions>(commandLineArguments);
                 result
                     .WithParsed(options => this.options = options)
                     .WithNotParsed(errors => errors.ToList().ForEach(e => errorMessages.Add(e.ToString())));
-                }
+            }
             catch (Exception ex)
-                {
+            {
                 errorMessages.Add(ex.Message);
-                }
+            }
 
             if (errorMessages.Any())
                 Environment.Exit(SignalInvalidOptions);
 
             var exitCode = await PerformUnzip(options);
             Environment.Exit(exitCode);
-            }
+        }
 
         private void PrintBanner()
-            {
+        {
             var assembly = Assembly.GetExecutingAssembly();
             var commitDate = GitVersionInformation.CommitDate ?? DateTime.Now.Year.ToString();
             var yearCommitted = commitDate.Substring(0, 4);
@@ -66,40 +66,41 @@ namespace TA.Usno.Extractor
             string copyrightYear = yearCreated == yearCommitted ? yearCreated : $"{yearCreated}-{yearCommitted}";
             Console.WriteLine("Zip Archive Bulk Extractor");
             Console.WriteLine($"Copyright {copyrightYear} Tigra Astronomy, all rights reserved.");
-            }
+        }
 
         private async Task<int> PerformUnzip(ExtractorOptions options)
-            {
+        {
             try
-                {
+            {
                 var sourceFiles = EnumerateSourceFiles(options.SourcePath);
                 await UnzipFiles(sourceFiles);
                 return SignalSuccess;
-                }
+            }
             catch (Exception ex)
-                {
+            {
                 errorMessages.Add(ex.Message);
                 return SignalExtractionFailed;
-                }
             }
+        }
 
         private async Task UnzipFiles(IEnumerable<string> sourceFiles)
-            {
+        {
             var destination = options.DestinationPath ?? options.SourcePath ?? ".";
             var destinationDirectory = Path.GetFullPath(destination);
             Console.WriteLine($"Extractor running...");
             Console.WriteLine($"Source directory: {options.SourcePath}");
             Console.WriteLine($"Destination directory: {destinationDirectory}");
             Console.WriteLine($"Delete archives: {options.DeleteArchives}");
+            Console.WriteLine($"Force (overwrite): {options.Force}");
 
             int count = 0;
             foreach (var file in sourceFiles)
-                {
+            {
                 await ExtractOne(file, destinationDirectory);
                 ++count;
-                }
-            Console.WriteLine($"Processed {count} source files.");
             }
+            Console.WriteLine($"Processed {count} source files.");
+        }
 
         /*
          * We expect teh Zip archive to contain:
@@ -115,32 +116,37 @@ namespace TA.Usno.Extractor
          *          *.
          */
         private async Task ExtractOne(string zipName, string destinationDirectory)
-            {
+        {
             try
-                {
+            {
                 await using (var zipStream = new FileStream(zipName, FileMode.Open))
-                    {
+                {
                     var zip = new ZipArchive(zipStream, ZipArchiveMode.Read);
                     Console.WriteLine($"Extracting {zipName}, {zip.Entries.Count} entries");
-                    zip.ExtractToDirectory(destinationDirectory);
+                    zip.ExtractToDirectory(destinationDirectory, options.Force);
                     Console.WriteLine($"Finished {zipName}");
-                    }
+                }
                 if (options.DeleteArchives)
-                    {
+                {
                     File.Delete(zipName);
                     Console.WriteLine($"Deleted {zipName}");
-                    }
+                }
 
-                }
-            catch (Exception ex)
-                {
-                Console.WriteLine(ex);
-                throw;
-                }
             }
+            catch (IOException ex)  // Will occur if file already exists and overwrite not specified
+            {
+                Console.WriteLine(ex.Message);
+                if (!options.IgnoreErrors) throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
 
         private IEnumerable<string> EnumerateSourceFiles(string sourcePath)
-            {
+        {
             var fullyQualifiedSourceDirectory = Path.GetFullPath(sourcePath);
 
             if (!Path.EndsInDirectorySeparator(fullyQualifiedSourceDirectory))
@@ -149,6 +155,6 @@ namespace TA.Usno.Extractor
             var zipFiles =
                 Directory.EnumerateFiles(fullyQualifiedSourceDirectory, "*.zip", SearchOption.TopDirectoryOnly);
             return zipFiles;
-            }
         }
     }
+}
